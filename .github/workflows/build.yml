@@ -1,0 +1,35 @@
+name: Build and deploy site
+
+on:
+  push:
+    branches: [main]      # run whenever you save changes to main
+  workflow_dispatch:      # also lets you run it with a button
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4            # download your repo files
+      - uses: actions/setup-python@v5        # install Python
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt # install pandas, numpy, matplotlib
+      - run: python build.py                 # run YOUR program
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs                         # the folder your program created
+      - id: deployment
+        uses: actions/deploy-pages@v4        # publish the website
